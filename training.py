@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from model import build_model
+from keras.losses import categorical_crossentropy
 
 # Data Preparation
 print("Loading data ...")
@@ -14,7 +15,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_
 
 # Build model
 model = build_model()
-model.compile(loss='sparse_categorical_crossentropy',
+model.compile(loss=categorical_crossentropy,
               optimizer=keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-7),
               metrics=['accuracy'])
 
