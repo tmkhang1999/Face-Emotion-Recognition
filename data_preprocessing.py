@@ -17,9 +17,8 @@ def create_training_data(directory):
         X.append(img)
     X = np.asarray(X)
     X = np.expand_dims(X, -1)
+    X = X / 255.0
     X = X.astype('float32')
-    X -= np.mean(X, axis=0)
-    X /= np.std(X, axis=0)
 
     Y = pd.get_dummies(data['emotion']).to_numpy()
     print('Done')
