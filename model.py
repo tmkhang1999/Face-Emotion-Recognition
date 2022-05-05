@@ -1,21 +1,41 @@
-import tensorflow as tf
+from keras.layers import Dense, Dropout, Flatten
+from keras.models import Sequential
 from tensorflow import keras
-from tensorflow.keras import layers, Input
+from keras import Input
 
 
 def build_model():
-    print("Building model ...")
-    base_model = tf.keras.applications.MobileNetV2(include_top=False, input_shape=(48, 48, 3))
+    blocks = 4
+    convs = [2, 2, 2, 2]
+    filters = [32, 64, 128, 256]
+    drops = [0.5, 0.5, 0.5, 0.5]
+    initializer = keras.initializers.he_normal()
+    weight_decay = 1e-5
 
-    new_input = Input(shape=(48, 48, 1), name='image_input')
-    x = layers.Conv2D(3, kernel_size=(3, 3), activation='relu', padding='same')(new_input)
-    x = layers.GlobalAveragePooling2D()(base_model(x))
-    x = layers.Dense(512, activation="relu")(x)
-    x = layers.Dropout(0.4)(x)
-    x = layers.Dense(128, activation="relu")(x)
-    x = layers.Dropout(0.4)(x)
-    x = layers.Dense(7, activation="softmax")(x)
+    model = Sequential()
+    model.add(Input(shape=(48, 48, 1)))
 
-    model = keras.Model(inputs=new_input, outputs=x)
+    for block in range(blocks):
+        for conv in range(convs[block]):
+            model.add(keras.layers.Conv2D(filters[block], (3, 3), padding='same',
+                                          activation='relu',
+                                          kernel_initializer=initializer,
+                                          kernel_regularizer=keras.regularizers.l1_l2(weight_decay, weight_decay)))
+            model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(keras.layers.Dropout(drops[block]))
+
+    model.add(Flatten())
+
+    model.add(Dense(512, activation='relu'))
+    model.add(Dropout(0.5))
+
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.4))
+
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+
+    model.add(Dense(6, activation='softmax'))
 
     return model
